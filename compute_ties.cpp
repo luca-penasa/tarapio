@@ -15,6 +15,7 @@
 #include "io.h"
 #include "matches_filter.h"
 #include "keypoints_extractor.h"
+#include "cache_manager.h"
 
 #include <time.h>
 
@@ -119,21 +120,21 @@ int test_simple_match_2_images_and_save(vector<string> filenames)
     index.setInputKeypoints(keys);
     index.buildIndex();
 
-    vector<vector<Match> > matches  = index.getMatchesMulti(keys2, 2);
+    vector<Matches::Ptr > matches  = index.getMatchesMulti(keys2, 2);
 
     MatchesFilter filter;
     filter.setFilterType(MatchesFilter::FIRST_NEAREST);
     filter.setInputMatches(matches);
 
-    std::shared_ptr<vector<Match> > good_matches(new  vector<Match>);
+    Matches::Ptr good_matches = Matches::Ptr(new  Matches);
 
-    filter.filter(*good_matches, 0.2);
+    filter.filter(good_matches, 0.2);
 
     //try to write out the good matches
 
     MatchesWriter writer;
     writer.setFilename("matches.txt");
-    writer.setMatchesAndKeypoints(*good_matches, *keys, *keys2);
+    writer.setMatchesAndKeypoints(good_matches, *keys, *keys2);
     writer.write();
 
     cout << "Found " << good_matches->size() << " good matches" << endl;
@@ -141,6 +142,15 @@ int test_simple_match_2_images_and_save(vector<string> filenames)
     return 1;
 }
 
+
+
+int test_new_datadb(vector<string> filenames)
+{
+      DataDB datadb;
+      datadb.setImages(filenames);
+      datadb.precomputeMatches();
+      datadb.writeOutMatchesToFinalPath("Homol");
+}
 
 int main(int argc, char ** argv)
 {
@@ -156,15 +166,17 @@ int main(int argc, char ** argv)
 
 //    test_create_save_load_flann(filenames);
 
+    test_new_datadb(filenames);
+
     ///////////////////////////////////////////////////
 
     //// ACTUAL CODE
-    Matcher<unsigned char> matcher;
-    matcher.setFilenames(filenames);
-    matcher.updateKeypoints();
-    matcher.updateFinders();
-    matcher.updateMatches();
-    matcher.writeOutHomolFiles();
+//    Matcher<unsigned char> matcher;
+//    matcher.setFilenames(filenames);
+//    matcher.updateKeypoints();
+//    matcher.updateFinders();
+//    matcher.updateMatches();
+//    matcher.writeOutHomolFiles();
 
 
         return 1;

@@ -3,7 +3,7 @@
 
 
 
-void MatchesWriter::setMatchesAndKeypoints(vector<Match>  matches, Keypoints keysA, Keypoints keysB)
+void MatchesWriter::setMatchesAndKeypoints(Matches::Ptr matches, Keypoints keysA, Keypoints keysB)
 {
     keysA_ = keysA;
     keysB_ = keysB;
@@ -18,7 +18,7 @@ void MatchesWriter::setMatchesAndKeypoints(vector<Match>  matches, Keypoints key
 
 void MatchesWriter::toXYMatches()
 {
-    for (Match m: matches_)
+    for (Match m: *matches_)
     {
         MatchXY mxy;
         float xa, ya, xb, yb;

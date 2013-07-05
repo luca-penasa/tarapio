@@ -35,6 +35,8 @@ void Matcher<ScalarT>::setFilenames(vector<string> fnames)
     mask_.setImageNames(filenames_);
     mask_.setFromMissingMatchFiles(out_dir_); //this is the default behavior
     image_matrix_ = ImageMatchesMatrix(fnames.size());
+
+    cache_manager_.setImages(filenames_);
 }
 
 template <typename ScalarT>
@@ -89,7 +91,7 @@ void Matcher<ScalarT>::updateMatches()
                 Keypoints::Ptr kps_a = keypoints_.at(i);
                 Keypoints::Ptr kps_b = keypoints_.at(j);
 
-                vector<vector<Match> > matches;
+                vector<Matches::Ptr> matches;
 
                 if (kps_a->keypoints_.size() > kps_b->keypoints_.size())
                 {
@@ -104,7 +106,7 @@ void Matcher<ScalarT>::updateMatches()
 
                 }
 
-                vector<Match> good_matches;
+                Matches::Ptr good_matches = Matches::Ptr (new Matches);
 
                 MatchesFilter filter;
                 filter.setFilterType(MatchesFilter::FIRST_NEAREST);
@@ -113,7 +115,7 @@ void Matcher<ScalarT>::updateMatches()
 
                 cout << "IM A : " << ima << endl;
                 cout << "IM B : " << imb << endl;
-                cout << "Found " << good_matches.size() << " matches!" << endl;
+                cout << "Found " << good_matches->size() << " matches!" << endl;
 
                 if (kps_a->keypoints_.size() > kps_b->keypoints_.size())
                     image_matrix_.setMatches(good_matches, i, j);
@@ -217,7 +219,7 @@ void Matcher<ScalarT>::writeOutHomolFiles()
                 string nameb = filenames_.at(j);
 
                 cout << "WRITE " << namea << " vs " << nameb << endl;
-                vector<Match> matches = image_matrix_.getMatches(i, j);
+                Matches::Ptr matches = image_matrix_.getMatches(i, j);
 
 
                 Keypoints::Ptr keyb = keypoints_.at(j);

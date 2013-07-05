@@ -10,6 +10,7 @@
 #include "flann_index.h"
 #include "image_matches_mask.h"
 #include "images_matches_matrix.h"
+#include "cache_manager.h"
 
 using namespace std;
 
@@ -55,6 +56,8 @@ private:
     string cache_dir_;
 
     ImageMatchesMask mask_;
+
+    DataDB cache_manager_;
 };
 
 

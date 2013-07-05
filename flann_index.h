@@ -7,7 +7,7 @@
 
 using namespace std;
 
-template <typename ScalarT>
+template <typename ScalarT = unsigned char>
 class FlannIndex
 {
 public:
@@ -26,7 +26,7 @@ public:
     void setInputKeypoints(Keypoints::Ptr kpoints);
 
 
-    vector<vector<Match> > getMatchesMulti(Keypoints::Ptr points, int nn);
+    vector<Matches::Ptr > getMatchesMulti(Keypoints::Ptr points, int nn);
 
 
 

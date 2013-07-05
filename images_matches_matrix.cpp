@@ -2,7 +2,7 @@
 
 
 
-vector<Match> ImageMatchesMatrix::getMatches(int ida, int idb)
+Matches::Ptr ImageMatchesMatrix::getMatches(int ida, int idb)
 {
     return matches_.at(ida*n_images_ + idb);
 }
@@ -20,7 +20,7 @@ void ImageMatchesMatrix::setNumberOfImages(size_t number)
 }
 
 
-void ImageMatchesMatrix::setMatches(vector<Match> matches, int ida, int idb)
+void ImageMatchesMatrix::setMatches(Matches::Ptr matches, int ida, int idb)
 {
     //simple checks
     if (ida == idb)
@@ -32,8 +32,9 @@ void ImageMatchesMatrix::setMatches(vector<Match> matches, int ida, int idb)
 
     if (work_in_mirror_)
     {
-        vector<Match> inverted = matches;
-        for (Match &m: inverted)
+        Matches::Ptr inverted  = Matches::Ptr (new Matches);
+                *inverted = *matches;
+        for (Match &m: *inverted)
             m.switchIDS();
 
 
@@ -44,8 +45,8 @@ void ImageMatchesMatrix::setMatches(vector<Match> matches, int ida, int idb)
 
 bool ImageMatchesMatrix::existsMatch(int ida, int idb)
 {
-    vector<Match> match = getMatches(ida, idb);
-    if (match.size() == 0)
+    Matches::Ptr match = getMatches(ida, idb);
+    if (match->size() == 0)
     {
         return false;
     }

@@ -9,6 +9,7 @@
 
 //LOCAL
 #include "keypoints.h"
+//#include "flann_index.h"
 
 using namespace std;
 
@@ -157,7 +158,7 @@ public:
         filename_ = fname;
     }
 
-    void setMatchesAndKeypoints(vector<Match>  matches, Keypoints keysA, Keypoints keysB);
+    void setMatchesAndKeypoints(Matches::Ptr  matches, Keypoints keysA, Keypoints keysB);
 
     void toXYMatches();
 
@@ -167,12 +168,14 @@ public:
 
 private:
     string filename_ ;
-    std::vector<Match>  matches_;
+    Matches::Ptr  matches_;
     vector<MatchXY> matches_xy_;
     Keypoints keysA_;
     Keypoints keysB_;
     bool filter_duplicates_;
 };
+
+
 
 
 #endif // IO_H

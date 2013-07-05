@@ -22,7 +22,7 @@ public:
 
     MatchesFilter() {filter_type_ = MINIMUM; }
 
-    void setInputMatches(vector<vector<Match> > multi_matches)
+    void setInputMatches(vector<Matches::Ptr> multi_matches)
     {
         in_matches_ = multi_matches;
     }
@@ -32,7 +32,7 @@ public:
         filter_type_ = type;
     }
 
-    void filter(vector<Match> &matches, float factor)
+    void filter(Matches::Ptr matches, float factor)
     {
         switch (filter_type_)
         {
@@ -41,7 +41,7 @@ public:
             float old_dist = std::numeric_limits<float>::max();
             for (int i = 0 ; i < in_matches_.size(); ++i)
             {
-                Match match = in_matches_.at(i).at(0);
+                Match match = in_matches_.at(i)->at(0);
                 float dist = match.distance_;
                 if (old_dist > dist )
                     old_dist = dist;
@@ -54,10 +54,10 @@ public:
             float discriminant_distance = factor * min_distance;
             for (int i = 0 ; i < in_matches_.size(); ++i)
             {
-                Match match = in_matches_.at(i).at(0);
+                Match match = in_matches_.at(i)->at(0);
                 if (match.distance_ < discriminant_distance)
                 {
-                    matches.push_back(match);
+                    matches->push_back(match);
                 }
 
             }
@@ -74,14 +74,14 @@ public:
             //filtering!
             for (int i = 0; i < in_matches_.size(); ++i)
             {
-                Match m1 = in_matches_.at(i).at(0);
-                Match m2 = in_matches_.at(i).at(1);
+                Match m1 = in_matches_.at(i)->at(0);
+                Match m2 = in_matches_.at(i)->at(1);
 
 //                int nn = in_matches_.at(0).size();
                 if (m1.distance_ < m2.distance_ * factor)
                 {
 
-                    matches.push_back(m1);
+                    matches->push_back(m1);
                 }
 
             }
@@ -96,7 +96,7 @@ public:
     }
 
 
-    vector<vector<Match> > in_matches_;
+    vector<Matches::Ptr> in_matches_;
     FILTER_TYPE filter_type_;
 
 };

@@ -14,6 +14,17 @@
 
 using namespace std;
 
+struct KeypointsExtractorConfiguration
+{
+    KeypointsExtractorConfiguration()
+    {
+        image_scale_factor_ = 0.2;
+        method_ = 0; //SIFT only for now
+    }
+
+    float image_scale_factor_;
+    int method_; //in a future we could introduce methods other than sift!
+};
 
 ///
 /// \brief The KeypointsExtractor class
@@ -30,6 +41,12 @@ public:
     Keypoints::Ptr getDescriptors();
 
     void setScale(float scale);
+
+    void configure(KeypointsExtractorConfiguration configuration)
+    {
+        this->setScale(configuration.image_scale_factor_);
+        //one should also use method for setting it here - for now only SIFT
+    }
 
 private:
     typedef shared_ptr<KeypointsExtractor> Ptr;

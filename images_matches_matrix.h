@@ -13,15 +13,18 @@ using namespace std;
 class ImageMatchesMatrix
 {
 public:
+
+    ImageMatchesMatrix()  {}
+
     ImageMatchesMatrix(size_t n_images) {
         work_in_mirror_ = true;
         setNumberOfImages(n_images);
     }
 
-    vector<Match> getMatches(int ida, int idb);
+    Matches::Ptr getMatches(int ida, int idb);
 
 
-    void setMatches(vector<Match> matches, int ida, int idb);
+    void setMatches(Matches::Ptr matches, int ida, int idb);
 
 
     void setWorkInMirror(bool mirror);
@@ -37,7 +40,7 @@ private:
 
     bool work_in_mirror_;
 
-    vector< vector<Match> > matches_;
+    vector< Matches::Ptr > matches_;
 
     vector<string> filenames_;
 };

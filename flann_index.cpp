@@ -25,7 +25,7 @@ void FlannIndex<ScalarT>::setInputKeypoints(Keypoints::Ptr kpoints)
 }
 
 template<typename ScalarT>
-vector<vector<Match> > FlannIndex<ScalarT>::getMatchesMulti(Keypoints::Ptr points, int nn)
+vector<Matches::Ptr> FlannIndex<ScalarT>::getMatchesMulti(Keypoints::Ptr points, int nn)
 {
     last_query_ = points->getAllDescriptorAsStdVector<ScalarT>();
     flann::Matrix<ScalarT> query_flann (&last_query_[0], points->getNumberOfKeypoints(), points->getSizeOfFeature());
@@ -52,18 +52,18 @@ vector<vector<Match> > FlannIndex<ScalarT>::getMatchesMulti(Keypoints::Ptr point
     cout << time_spent << endl;
 
 
-    vector<vector<Match> > matches;
+    vector<Matches::Ptr> matches;
 
 
     //putting in matches
     for (int i = 0; i < points->getNumberOfKeypoints() ; ++i)
     {
-        vector<Match> this_matches;
+        Matches::Ptr this_matches = Matches::Ptr (new Matches);
         for (int j=0; j < nn; ++j)
         {
             Match match(ids.at(i*nn+j), i);
             match.distance_ = dists.at(i*nn + j);
-            this_matches.push_back(match);
+            this_matches->push_back(match);
         }
 
         matches.push_back(this_matches);

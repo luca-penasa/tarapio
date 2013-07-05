@@ -9,6 +9,7 @@
 using namespace std;
 
 
+
 class Match
 {
 
@@ -29,6 +30,18 @@ public:
 
     int idA_, idB_;
     float distance_;
+
+};
+
+
+class Matches: public vector<Match>
+{
+public:
+
+    typedef shared_ptr<Matches> Ptr;
+    Matches() {}
+
+
 
 };
 
