@@ -186,17 +186,17 @@ public:
 
     void setCacheDir(string cache_dir) { config_.cache_dir_ = cache_dir; }
 
-    Keypoints::Ptr getKeypointsForImage( int image_id);
+    Keypoints::Ptr getKeypointsForImage(int image_id);
 
     FlannIndex<>::Ptr getFlannIndexForImage( int image_id);
 
     Matches::Ptr getMatchesForCouple(int image_a_id, int image_b_id);
 
-    void setFeatureExtractorConfig(KeypointsExtractorConfiguration conf) {config_.keys_ = conf;}
+//    void setFeatureExtractorConfig(KeypointsExtractorConfiguration conf) {config_.keys_ = conf;}
 
-    void setFlannConfig(FlannIndexConfiguration conf) {config_.flann_ = conf;}
+//    void setFlannConfig(FlannIndexConfiguration conf) {config_.flann_ = conf;}
 
-    void setMatchesFilterConfig(MatchesFilterConfiguration conf) {config_.match_filter_ = conf;}
+//    void setMatchesFilterConfig(MatchesFilterConfiguration conf) {config_.match_filter_ = conf;}
 
     void setConfig(DataDBConfiguration conf){config_ = conf;}
 

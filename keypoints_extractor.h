@@ -19,10 +19,13 @@ struct KeypointsExtractorConfiguration
     KeypointsExtractorConfiguration()
     {
         image_major_side_ = 800;
+        image_major_side_low_= 400; //use only when the multi-scale mathod will be required
         method_ = 0; //SIFT only for now
     }
 
-    float image_major_side_;
+    int image_major_side_;
+    int image_major_side_low_;
+
     int method_; //in a future we could introduce methods other than sift!
 
     string getAsString()
