@@ -18,12 +18,27 @@ struct KeypointsExtractorConfiguration
 {
     KeypointsExtractorConfiguration()
     {
-        image_scale_factor_ = 0.2;
+        image_major_side_ = 800;
         method_ = 0; //SIFT only for now
     }
 
-    float image_scale_factor_;
+    float image_major_side_;
     int method_; //in a future we could introduce methods other than sift!
+
+    string getAsString()
+    {
+        stringstream stream;
+        stream << image_major_side_ << "_" << method_;
+        return stream.str();
+    }
+
+    void printStatus()
+    {
+        cout << "Keypoint extraction options" << endl;
+        cout << " - scale factor\t" << image_major_side_ << endl;
+        cout << endl;
+
+    }
 };
 
 ///
@@ -32,6 +47,12 @@ struct KeypointsExtractorConfiguration
 class KeypointsExtractor
 {
 public:
+
+    KeypointsExtractor()
+    {
+        config_ = KeypointsExtractorConfiguration();
+    }
+
     void setFilename (const string filename);
 
     void loadImage();
@@ -40,12 +61,16 @@ public:
 
     Keypoints::Ptr getDescriptors();
 
-    void setScale(float scale);
+    void setScale(int dimension);
 
     void configure(KeypointsExtractorConfiguration configuration)
     {
-        this->setScale(configuration.image_scale_factor_);
-        //one should also use method for setting it here - for now only SIFT
+        config_ = configuration;
+    }
+
+    KeypointsExtractorConfiguration getConfig()
+    {
+        return  config_;
     }
 
 private:
@@ -57,7 +82,9 @@ private:
 
     vector<cv::KeyPoint> cv_keypoints_;
 
-    float scale_;
+    KeypointsExtractorConfiguration config_;
+
+    float current_scale_;
 };
 
 

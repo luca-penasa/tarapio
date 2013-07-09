@@ -17,6 +17,53 @@
 
 using namespace std;
 
+struct DataDBConfiguration
+{
+    DataDBConfiguration()
+    {
+        keys_ = KeypointsExtractorConfiguration();
+        flann_ = FlannIndexConfiguration();
+        match_filter_ = MatchesFilterConfiguration();
+
+        features_autosave_ = true;
+        indices_autosave_ = true;
+        matches_autosave_ = true;
+
+        force_matches_rewrite_ = false;
+
+
+        cache_dir_ = "cache";
+    }
+
+    KeypointsExtractorConfiguration keys_;
+    FlannIndexConfiguration flann_;
+    MatchesFilterConfiguration match_filter_;
+
+    bool features_autosave_, indices_autosave_, matches_autosave_, force_matches_rewrite_;
+
+    string cache_dir_;
+
+    string getKeypointPartAsString()
+    {
+        return keys_.getAsString() ;
+    }
+
+    void printStatus()
+    {
+        cout << "Overall options" << endl;
+        cout << " - cache directory\t"<< cache_dir_ << endl;
+        cout << " - forcing matches recomputing?\t" << force_matches_rewrite_ << endl;
+        cout << endl;
+
+        keys_.printStatus();
+        flann_.printStatus();
+        match_filter_.printStatus();
+
+    }
+
+};
+
+
 class DataDB
 
 {
@@ -31,20 +78,79 @@ public:
         matches_.setNumberOfImages(images_.size());
         mask_.setNumberOfImages(images_.size());
         mask_.setUpperTriangularNoDiagonal(); //this is the default
+    }
 
 
+    void setImagesFromMasterQuery(vector<string> master, vector<string> query)
+    {
+        std::set<string> aslist;
+        for (auto e: master)
+            aslist.insert(e);
 
+        for (auto e: query)
+            aslist.insert(e);
+
+        std::vector<string> asvec(aslist.size());
+        std::copy(aslist.begin(), aslist.end(), asvec.begin());
+        //now we have all the images names
+
+        images_ = asvec;
+        keypoints_.resize(images_.size());
+        flann_indices_.resize(images_.size());
+        matches_.setNumberOfImages(images_.size());
+        mask_.setFromMasterQuery(master, query);
+//        mask_.setUpperTriangularNoDiagonal(); //this is the default
     }
 
     void ensureCacheDirStructure()
     {
         //ensure all the dirs are setted up
-        mkdir(cache_dir_.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        mkdir((cache_dir_ + "/tarapio/").c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        mkdir((cache_dir_ + "/tarapio/flann/").c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        mkdir((cache_dir_ + "/tarapio/descriptors/").c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        mkdir((cache_dir_ + "/tarapio/matches/").c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        mkdir(getCacheDir().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        mkdir(getConfigIdentifierDir().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+        mkdir(getCurrentCacheDescriptorsDir().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        mkdir((getConfigIdentifierDir() + "/matches/").c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        mkdir(getCurrentCacheMatchesDir().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
+
+    ImageMatchesMask getCurrentMask()
+    {
+        return mask_;
+    }
+
+    void setImageMask(ImageMatchesMask mask)
+    {
+        mask_ = mask;
+    }
+
+    string getCacheDir()
+    {
+        return config_.cache_dir_;
+    }
+
+    string getConfigIdentifierDir()
+    {
+        return config_.cache_dir_ + "/" + config_.getKeypointPartAsString();
+    }
+
+    string getCurrentCacheDescriptorsDir()
+    {
+        return config_.cache_dir_ + "/" + config_.getKeypointPartAsString() + "/descriptors/";
+    }
+
+    string getCurrentCacheMatchesDir()
+    {
+        float fthres = config_.match_filter_.filter_threshold;
+        int nchecks = config_.flann_.n_checks_;
+
+        stringstream stream;
+        stream << fthres << "_" << nchecks;
+        string prep = stream.str();
+
+
+        return config_.cache_dir_ + "/" + config_.getKeypointPartAsString() + "/matches/" + prep + "/";
+    }
+
 
     void precomputeKeypoints()
     {
@@ -72,12 +178,13 @@ public:
                 {
                     getMatchesForCouple(i, j);
                 }
+
             }
         }
 
     }
 
-    void setCacheDir(string cache_dir) { cache_dir_ = cache_dir; }
+    void setCacheDir(string cache_dir) { config_.cache_dir_ = cache_dir; }
 
     Keypoints::Ptr getKeypointsForImage( int image_id);
 
@@ -85,13 +192,19 @@ public:
 
     Matches::Ptr getMatchesForCouple(int image_a_id, int image_b_id);
 
-    void setFeatureExtractorConfig(KeypointsExtractorConfiguration conf) {feat_configuration_ = conf;}
+    void setFeatureExtractorConfig(KeypointsExtractorConfiguration conf) {config_.keys_ = conf;}
 
-    void setFeaturesAutosave(bool flag) {features_autosave_ = true;}
+    void setFlannConfig(FlannIndexConfiguration conf) {config_.flann_ = conf;}
 
-    void setFlannIndicesAutosave(bool flag) {indices_autosave_ = true;}
+    void setMatchesFilterConfig(MatchesFilterConfiguration conf) {config_.match_filter_ = conf;}
 
-    void setMatchesAutosave(bool flag) {matches_autosave_ = true;}
+    void setConfig(DataDBConfiguration conf){config_ = conf;}
+
+    void setFeaturesAutosave(bool flag) {config_.features_autosave_ = flag;}
+
+    void setFlannIndicesAutosave(bool flag) {config_.indices_autosave_ = flag;}
+
+    void setMatchesAutosave(bool flag) {config_.matches_autosave_ = flag;}
 
     void setImageMatrixMask(ImageMatchesMask mask) {mask_ = mask;}
 
@@ -138,7 +251,7 @@ public:
 private:
     vector<string> images_;
 
-    string cache_dir_;
+//    string cache_dir_;
 
     vector<Keypoints::Ptr> keypoints_;
 
@@ -148,11 +261,10 @@ private:
 
     ImageMatchesMask mask_;
 
-    KeypointsExtractorConfiguration feat_configuration_;
+    DataDBConfiguration config_;
 
-    bool features_autosave_, indices_autosave_, matches_autosave_;
 
-    bool force_matches_rebuilding_;
+
 };
 
 #endif // CACHE_MANAGER_H

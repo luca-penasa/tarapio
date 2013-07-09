@@ -17,6 +17,8 @@ void ImageMatchesMatrix::setNumberOfImages(size_t number)
 {
     n_images_ = number;
     matches_.resize(n_images_ * n_images_);
+    for (auto &match: matches_) //initialize all as null pointers
+        match = NULL;
 }
 
 

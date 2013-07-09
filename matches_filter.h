@@ -4,12 +4,44 @@
 //STD
 #include <vector>
 #include <limits>
+#include <sstream>
 
 //LOCAL
 #include "matches.h"
 
 
 using namespace std;
+
+struct MatchesFilterConfiguration
+{
+    enum FILTER_TYPE {MINIMUM, FIRST_NEAREST};
+
+    MatchesFilterConfiguration()
+    {
+        filter_threshold = 0.2;
+        filter_type_ = FIRST_NEAREST;
+    }
+
+    float filter_threshold;
+    FILTER_TYPE filter_type_;
+
+    string getAsString()
+    {
+        stringstream s;
+        s << filter_threshold << "_" << filter_type_ ;
+        return s.str();
+    }
+
+    void printStatus()
+    {
+        cout << "Matches filter options\t" << endl;
+        cout << " - filter threshold\t" << filter_threshold << endl;
+        cout << endl;
+    }
+
+
+};
+
 
 ///
 /// \brief The MatchesFilter class
@@ -20,21 +52,22 @@ class MatchesFilter
 public:
     enum FILTER_TYPE {MINIMUM, FIRST_NEAREST};
 
-    MatchesFilter() {filter_type_ = MINIMUM; }
+    MatchesFilter() {config_ = MatchesFilterConfiguration(); }
 
     void setInputMatches(vector<Matches::Ptr> multi_matches)
     {
         in_matches_ = multi_matches;
     }
 
-    void setFilterType(FILTER_TYPE type)
+
+    void setConfig(MatchesFilterConfiguration conf)
     {
-        filter_type_ = type;
+        config_ = conf;
     }
 
-    void filter(Matches::Ptr matches, float factor)
+    void filter(Matches::Ptr matches)
     {
-        switch (filter_type_)
+        switch (config_.filter_type_)
         {
             case MINIMUM:
             {
@@ -51,7 +84,7 @@ public:
             float min_distance = old_dist;
             cout << "Found min distance: " << min_distance <<  endl;
 
-            float discriminant_distance = factor * min_distance;
+            float discriminant_distance = config_.filter_threshold * min_distance;
             for (int i = 0 ; i < in_matches_.size(); ++i)
             {
                 Match match = in_matches_.at(i)->at(0);
@@ -78,7 +111,7 @@ public:
                 Match m2 = in_matches_.at(i)->at(1);
 
 //                int nn = in_matches_.at(0).size();
-                if (m1.distance_ < m2.distance_ * factor)
+                if (m1.distance_ < m2.distance_ * config_.filter_threshold)
                 {
 
                     matches->push_back(m1);
@@ -97,9 +130,14 @@ public:
 
 
     vector<Matches::Ptr> in_matches_;
-    FILTER_TYPE filter_type_;
+
+
+    MatchesFilterConfiguration config_;
 
 };
+
+
+
 
 
 

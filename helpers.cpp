@@ -22,6 +22,7 @@ int getFilesInDir(const string directory, vector<string> & list)
 bool fexists(string filename)
 {
     FILE * file = fopen(filename.c_str(), "r");
+
     return file;
 }
 

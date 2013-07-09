@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <set>
 
 #include "helpers.h"
 
@@ -17,16 +18,22 @@ class ImageMatchesMask
 public:
     ImageMatchesMask() {}
 
+    void reset()
+    {
+        mask_.assign(n_images_ * n_images_, false);
+    }
+
     void setNumberOfImages(size_t n)
     {
         n_images_ = n;
-        mask_.assign(n_images_ * n_images_, false);
+        reset();
     }
 
 
     void setImageNames(vector<string> names)
     {
         images_names_ = names;
+        setNumberOfImages(images_names_.size());
     }
 
 
@@ -35,10 +42,51 @@ public:
 
     bool getElement(int i, int j);
 
+    int getIDOfImageName(string imagename)
+    {
+        for (int i =0; i < images_names_.size(); ++i)
+        {
+            if (images_names_.at(i) == imagename)
+            {
+                return i;
+            }
+
+        }
+        return -1;
+    }
+
 
     void setUpperTriangularNoDiagonal();
 
-    void setFromMissingMatchFiles(string directory);
+    void setFromMasterQuery(vector<string> master, vector<string> query)
+    {
+        std::set<string> aslist;
+        for (auto e: master)
+            aslist.insert(e);
+
+        for (auto e: query)
+            aslist.insert(e);
+
+        std::vector<string> asvec(aslist.size());
+        std::copy(aslist.begin(), aslist.end(), asvec.begin());
+        //now we have all the images names
+        setImageNames(asvec);
+
+        for (string m: master)
+        {
+            int m_id = getIDOfImageName(m);
+            for (string q: query)
+            {
+                int q_id = getIDOfImageName(q);
+                if (q_id != m_id)
+                {
+                    setElement(m_id, q_id, true);
+                }
+            }
+        }
+    }
+
+//    void setFromMissingMatchFiles(string directory);
 
 
 private:

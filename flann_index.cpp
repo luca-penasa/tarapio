@@ -16,12 +16,8 @@ void FlannIndex<ScalarT>::setInputKeypoints(Keypoints::Ptr kpoints)
     desc_as_v_ = keypoints_->getAllDescriptorAsStdVector<ScalarT>();
     flann_descriptors_ = flann::Matrix<ScalarT>(&desc_as_v_[0], keypoints_->getNumberOfKeypoints(), keypoints_->getSizeOfFeature());
 
-    flann::KDTreeIndexParams params(4);
-    //        flann::AutotunedIndexParams params;
-
-
+    flann::KDTreeIndexParams params; //standard parameters for flann
     index_ = flannIndexTypePtr( new flannIndexType(flann_descriptors_, params) );
-    //        index_ = flannIndexTypePtr( new flannIndexType(flann_descriptors_, flann::AutotunedIndexParams()) );
 }
 
 template<typename ScalarT>
@@ -44,8 +40,11 @@ vector<Matches::Ptr> FlannIndex<ScalarT>::getMatchesMulti(Keypoints::Ptr points,
     clock_t begin, end;
     begin = clock();
 
-    //        spars.cores = 3;
-    index_->knnSearch(query_flann, flann_ids, flann_dists, nn, flann::SearchParams());
+    flann::SearchParams parameters (config_.n_checks_);
+    index_->knnSearch(query_flann, flann_ids, flann_dists, nn, parameters);
+
+    cout << "using checks " << config_.n_checks_ << endl;
+
 
     end = clock();
     double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
@@ -93,8 +92,7 @@ Keypoints::Ptr FlannIndex<ScalarT>::getTrainKeys()
     return keypoints_;
 }
 
-//// FORCE INSTANTATION FOR SOME TYPES
-
+//// FORCED INSTANTATION FOR SOME TYPES
 template class FlannIndex<unsigned char>;
 //template class FlannIndex<float>;
 //template class FlannIndex<double>;

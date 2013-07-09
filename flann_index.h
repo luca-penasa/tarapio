@@ -4,8 +4,36 @@
 #include <flann/flann.hpp>
 #include <memory>
 #include "keypoints.h"
+#include <sstream>
 
 using namespace std;
+
+struct FlannIndexConfiguration
+{
+
+    FlannIndexConfiguration()
+    {
+        n_checks_  = 32; //default value
+    }
+
+    int n_checks_;
+    string getAsString()
+    {
+        stringstream s;
+        s << n_checks_;
+        return s.str();
+
+    }
+
+    void printStatus()
+    {
+        cout << "Flann Index options" << endl;
+        cout << " - n checks\t" << n_checks_ << endl;
+        cout << endl;
+    }
+
+};
+
 
 template <typename ScalarT = unsigned char>
 class FlannIndex
@@ -22,19 +50,15 @@ public:
 
     void buildIndex();
 
-
     void setInputKeypoints(Keypoints::Ptr kpoints);
 
-
     vector<Matches::Ptr > getMatchesMulti(Keypoints::Ptr points, int nn);
-
-
 
     void saveIndexToFile(string filename);
 
     void loadIndexFromFile(string filename);
 
-
+    void configure (FlannIndexConfiguration conf) {config_ = conf;}
 
     Keypoints::Ptr getTrainKeys();
 
@@ -49,6 +73,8 @@ private:
     vector<ScalarT> last_query_;
 
     vector<vector<Keypoint> > matches_;
+
+    FlannIndexConfiguration config_ ;
 
 };
 

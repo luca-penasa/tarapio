@@ -3,18 +3,14 @@
 DataDB::DataDB()
 {
 
-    features_autosave_ = true;
-    cache_dir_ = "cache/";
-    feat_configuration_ =  KeypointsExtractorConfiguration();
-    indices_autosave_ = true;
-    force_matches_rebuilding_ == false;
-
+    config_ = DataDBConfiguration();
 }
 
 
 
 Keypoints::Ptr DataDB::getKeypointsForImage( int image_id)
 {
+
     //do we have this keypoint in memory?
     if (keypoints_.at(image_id) != NULL)
     {
@@ -23,7 +19,9 @@ Keypoints::Ptr DataDB::getKeypointsForImage( int image_id)
 
     // if it is not in memory see in the cache on disk!
     string image_name = images_.at(image_id);
-    string keypoint_fname = cache_dir_ + "/tarapio/descriptors/" + image_name + ".desc";
+    string current_dir = getCurrentCacheDescriptorsDir();
+    string keypoint_fname = current_dir + "/" + image_name + ".desc";
+
 
     if(fexists(keypoint_fname)) //is there in cache?
     {
@@ -44,14 +42,14 @@ Keypoints::Ptr DataDB::getKeypointsForImage( int image_id)
     {
         KeypointsExtractor extractor;
         extractor.setFilename(image_name);
+        extractor.configure(config_.keys_);
         extractor.loadImage();
-        extractor.configure(feat_configuration_);
         extractor.compute();
         Keypoints::Ptr keys = extractor.getDescriptors();
 
         keypoints_.at(image_id) = keys;
 
-        if (features_autosave_) // save to cache this file
+        if (config_.features_autosave_) // save to cache this file
         {
             ensureCacheDirStructure();
             KeypointsWriter w;
@@ -76,14 +74,15 @@ FlannIndex<>::Ptr DataDB::getFlannIndexForImage( int image_id)
 
     // if it is not in memory see in the cache on disk!
     string image_name = images_.at(image_id);
-    string flann_fname = cache_dir_ + "/tarapio/flann/" + image_name + ".flann";
+    string current_dir = getCurrentCacheDescriptorsDir();
+    string flann_fname = current_dir + "/" + image_name + ".flann";
 
     //create the index object and set its keypoints
     Keypoints::Ptr keys = getKeypointsForImage(image_id);
 
     if(fexists(flann_fname)) //is there in cache?
-    {
-        FlannIndex<>::Ptr index = FlannIndex<>::Ptr (new FlannIndex<>);
+    {        
+        FlannIndex<>::Ptr index = FlannIndex<>::Ptr (new FlannIndex<>);        
 
         index->setInputKeypoints(keys);
         //try to load the file
@@ -107,7 +106,7 @@ FlannIndex<>::Ptr DataDB::getFlannIndexForImage( int image_id)
 
         keypoints_.at(image_id) = keys;
 
-        if (indices_autosave_) // save to cache this file
+        if (config_.indices_autosave_) // save to cache this file
         {
             ensureCacheDirStructure();
             index->saveIndexToFile(flann_fname);
@@ -131,15 +130,21 @@ Matches::Ptr DataDB::getMatchesForCouple(int image_a_id, int image_b_id)
     string name_a = images_.at(image_a_id);
     string name_b = images_.at(image_b_id);
 
-    string match_fname = cache_dir_ + "/tarapio/matches/" + name_a + "_vs_" + name_b + ".lock";
+    string current_dir = getCurrentCacheMatchesDir();
 
-    if (fexists(match_fname)) //no need to recompute this match!
+    string match_fname = current_dir + "/" + name_a + "_vs_" + name_b + ".lock";
+
+    if (fexists(match_fname) & !config_.force_matches_rewrite_) //no need to recompute this match!
     {
+        cout << "match exists!" << endl;
         return NULL; //return a null pointer!
     }
 
     else //we need to compute the match!
     {
+        cout << "looking for " << match_fname << endl;
+
+        cout << "computing match" << endl;
         string ima = images_.at(image_a_id);
         string imb = images_.at(image_b_id);
 
@@ -158,11 +163,13 @@ Matches::Ptr DataDB::getMatchesForCouple(int image_a_id, int image_b_id)
         {
             //this is the normal situation
             FlannIndex<>::Ptr finder = getFlannIndexForImage(image_a_id);
+            finder->configure(config_.flann_);
             matches = finder->getMatchesMulti(kps_b, 2);
         }
         else //simply the inverse thing - we also need to tell the Match object the two ids are inverted!
         {
             FlannIndex<>::Ptr finder = getFlannIndexForImage(image_b_id);
+            finder->configure(config_.flann_);
             matches = finder->getMatchesMulti(kps_a, 2);
 
         }
@@ -171,9 +178,9 @@ Matches::Ptr DataDB::getMatchesForCouple(int image_a_id, int image_b_id)
         Matches::Ptr good_matches = Matches::Ptr (new Matches);
 
         MatchesFilter filter;
-        filter.setFilterType(MatchesFilter::FIRST_NEAREST);
+        filter.setConfig(config_.match_filter_);
         filter.setInputMatches(matches);
-        filter.filter(good_matches, 0.2);
+        filter.filter(good_matches);
 
         cout << "IM A : " << ima << endl;
         cout << "IM B : " << imb << endl;
@@ -184,7 +191,7 @@ Matches::Ptr DataDB::getMatchesForCouple(int image_a_id, int image_b_id)
         else
             matches_.setMatches(good_matches, image_b_id, image_a_id);
 
-        if (matches_autosave_) //write a lock file for this match
+        if (config_.matches_autosave_) //write a lock file for this match
         {
             ensureCacheDirStructure();
             std::ofstream outfile (match_fname);

@@ -4,13 +4,27 @@
 void KeypointsExtractor::setFilename (const string filename)
 {
     filename_ = filename;
-    scale_ = 0.3;
 }
 
 void KeypointsExtractor::loadImage()
 {
+
+
     image_ = cv::imread(filename_, CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
-    cv::resize(image_, image_low_, cv::Size(), scale_, scale_, CV_INTER_AREA);
+
+    if (image_.cols > image_.rows)
+    {
+        current_scale_ =  (float)config_.image_major_side_ / image_.cols;
+    }
+    else
+        current_scale_ =  (float)config_.image_major_side_ / image_.rows;
+
+    cout << "CURRENT SCALE:" <<  current_scale_ << endl;
+    cout << image_.cols << " "<< image_.rows << endl;
+
+    cv::resize(image_, image_low_, cv::Size(0,0), current_scale_, current_scale_, CV_INTER_AREA);
+
+    cout << "RESIZED TO " << image_low_.cols << " per " << image_low_.rows<< endl;
 }
 
 void KeypointsExtractor::compute()
@@ -31,7 +45,6 @@ void KeypointsExtractor::compute()
     cout << descriptors_.cols << " per " << descriptors_.rows << endl;
 
     cout << "Found "<< *descriptors_.size.p << endl;
-
 }
 
 
@@ -58,16 +71,16 @@ Keypoints::Ptr KeypointsExtractor::getDescriptors()
     {
         cv::KeyPoint cv_key = cv_keypoints_.at(i);
         Keypoint::Ptr key (new Keypoint);
-        key->x_ = cv_key.pt.x * 1/scale_;
-        key->y_ = cv_key.pt.y* 1/scale_;
+        key->x_ = cv_key.pt.x * 1/current_scale_;
+        key->y_ = cv_key.pt.y* 1/current_scale_;
         keys->keypoints_.push_back(key);
     }
     return keys;
 }
 
-void KeypointsExtractor::setScale(float scale)
+void KeypointsExtractor::setScale(int dimension)
 {
-    scale_= scale;
+    config_.image_major_side_= dimension;
 }
 
 
