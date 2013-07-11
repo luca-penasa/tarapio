@@ -268,7 +268,7 @@ void print_help()
     cout << endl;
 
     cout << "FOR KEYPOINTS:" << endl;
-    cout << "-s\t" << "float\t" << "rescale factor before keypoint extraction with values from 0 to 1" << endl;
+    cout << "-s\t" << "int\t" << "rescale the longer edge of the image to this size (something like 800)" << endl;
     cout << endl;
 
     cout << "FOR FLANN INDEX SEARCH:" << endl;

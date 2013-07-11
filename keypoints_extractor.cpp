@@ -8,8 +8,6 @@ void KeypointsExtractor::setFilename (const string filename)
 
 void KeypointsExtractor::loadImage()
 {
-
-
     image_ = cv::imread(filename_, CV_LOAD_IMAGE_GRAYSCALE);   // Read the file
 
     if (image_.cols > image_.rows)
