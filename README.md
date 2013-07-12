@@ -20,7 +20,7 @@ A couple of dependencies:
 * [Flann](http://www.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN) (probably if you have opencv you yet have Flann installed)
 * [Boost](http://www.boost.org/) (used for parsing the regex at input)
 * [OpenMP](http://openmp.org) that is used for parallelizing the computations
-* A recent compiler. Actually some C++2011 standards have been used (mainly `shared_ptr` - the boost version of it could be used actually). I wrote it using gcc-4.7.3 
+* A recent compiler. Actually some C++2011 standards have been used (mainly `shared_ptr` - the boost version of it could be used actually). I wrote it using gcc-4.7.3, but gcc-4.6.* can compile it
 
 Syntax
 ------
@@ -42,7 +42,7 @@ See `tarapio -h` for further options
 
 Notes
 -----
-
+- The homologous points are saved in the Homol directory, as expected by Tapas. But remember to call Tapas with the **ExpTxt=1** option! Because the points are saved as ascii files.
 - The multiscale approach must still be implemented.
 - The caching system is far away from being perfect.
 
